@@ -3,6 +3,6 @@ class Program
 {
     static void Main(string[] args)
     {
-        Console.WriteLine("Test SSH push");
+        Console.WriteLine("Another test SSH push");
     }
 }

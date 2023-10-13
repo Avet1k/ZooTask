@@ -9,11 +9,17 @@ class Program
     }
 }
 
-abstract class Animal
+public class Genders
+{
+    public const char Male = 'M';
+    public const char Female = 'F';
+}
+
+class Animal
 {
     private string _sound;
     
-    protected Animal(string name, char sex, string sound = "")
+    public Animal(string name, string sound = "", char sex = Genders.Female)
     {
         Name = name;
         Sex = sex;
@@ -23,7 +29,7 @@ abstract class Animal
     public string Name { get; }
     public char Sex { get; }
 
-    public virtual void MakeSound()
+    public void MakeSound()
     {
         if (_sound != string.Empty)
             Console.WriteLine($"{Name} говорит {_sound}!");
@@ -31,36 +37,9 @@ abstract class Animal
             Console.WriteLine($"{Name} ничего не говорит.");
     }
 
-    public abstract Animal CreateNew(char sex);
-}
-
-class Wolf : Animal
-{
-    public Wolf(char sex = 'M') : base("Волк", sex, "Ауф") { }
-    
-    public override Animal CreateNew(char sex)
+    public Animal CreateNew(char sex)
     {
-        return new Wolf(sex: sex);
-    }
-}
-
-class Capybara : Animal
-{
-    public Capybara(char sex = 'M') : base("Капибара", sex) { }
-
-    public override Animal CreateNew(char sex)
-    {
-        return new Capybara(sex);
-    }
-}
-
-class Frog : Animal
-{
-    public Frog(char sex = 'M') : base("Лягушка", sex, "Ква-ква") { }
-    
-    public override Animal CreateNew(char sex)
-    {
-        return new Frog(sex);
+        return new Animal(Name, _sound, sex);
     }
 }
 
@@ -79,6 +58,7 @@ class Enclosure
     }
 
     public int Capacity => _animals.Capacity;
+    public string AnimalsName => GetAnimalsName();
 
     public void ShowDescription()
     {
@@ -86,7 +66,7 @@ class Enclosure
         {
             var animal = _animals[0];
             
-            Console.WriteLine($"Вальер №{_id}\n" +
+            Console.WriteLine($"Вольер №{_id}\n" +
                               $"Название животного: {animal.Name}\n" +
                               $"Всего животных: {_animals.Count}\n" +
                               $"Женских особей: {_femalesCount}\n" +
@@ -96,20 +76,27 @@ class Enclosure
         }
         else
         {
-            Console.WriteLine("Вальер пуст.");
+            Console.WriteLine("Вольер пуст.");
         }
+    }
+
+    private string GetAnimalsName()
+    {
+        string empty = "Пустой вольер";
+        
+        if (_animals.Count > 0)
+            return _animals[0].Name;
+        
+        return empty;
     }
 
     public void AddAnimal(Animal animal)
     {
-        char maleSymbol = 'M';
-        char femaleSymbol = 'F';
-        
         _animals.Add(animal);
 
-        if (animal.Sex == maleSymbol)
+        if (animal.Sex == Genders.Male)
             _malesCount++;
-        else if (animal.Sex == femaleSymbol)
+        else if (animal.Sex == Genders.Female)
             _femalesCount++;
     }
 }
@@ -128,41 +115,39 @@ class Zoo
             new Enclosure(2)
         };
         
-        FillEnclosure(0, new Wolf());
-        FillEnclosure(1, new Capybara());
-        FillEnclosure(2, new Frog());
+        FillEnclosure(0, new Animal("Волк", "Ауф"));
+        FillEnclosure(1, new Animal("Капибара"));
+        FillEnclosure(2, new Animal("Лягушка", "Ква"));
     }
 
     public void LookAnimals()
     {
-        const int FirstEnclosureMenu = 1;
-        const int SecondEnclosureMenu = 2;
-        const int ThrirdEnclosureMenu = 3;
-        const int FourthEnclosureMenu = 4;
         const int ExitMenu = 0;
 
         bool isWork = true;
 
         while (isWork)
         {
-            char userInput;
+            string userInput;
             
             Console.Clear();
-            Console.WriteLine("Добро пожаловать в зоопарк!\n\n" +
-                              "Выберите вальер, чтобы к нему подойти:\n" +
-                              $"{FirstEnclosureMenu} - первый вольер\n" +
-                              $"{SecondEnclosureMenu} - второй вольер\n" +
-                              $"{ThrirdEnclosureMenu} - третий вольер\n" +
-                              $"{FourthEnclosureMenu} - четвёртый вольер\n" +
-                              $"{ExitMenu} - выйти из зоопарка\n");
+            Console.WriteLine("Добро пожаловать в зоопарк!\n\n");
+            
+            ShowInfo();
+            
+            Console.Write("\nВведите номер вольера, чтобы к нему подойти.\n" +
+                          $"{ExitMenu} - выйти из зоопарка\n\n" +
+                          "> ");
 
-            userInput = Console.ReadKey(true).KeyChar;
+            userInput = Console.ReadLine();
 
-            if (int.TryParse(userInput.ToString(), out int inputNumber))
-                if (inputNumber >= FirstEnclosureMenu && inputNumber <= FourthEnclosureMenu)
-                    _enclosures[inputNumber - 1].ShowDescription();
-                else if (inputNumber == ExitMenu)
+            if (int.TryParse(userInput, out int inputNumber))
+            {
+                if (inputNumber == ExitMenu)
                     isWork = false;
+                else if (inputNumber > ExitMenu && inputNumber <= _enclosures.Length)
+                    _enclosures[inputNumber - 1].ShowDescription();
+            }
 
             if (!isWork)
                 continue;
@@ -171,11 +156,17 @@ class Zoo
             Console.ReadKey();
         }
     }
+
+    private void ShowInfo()
+    {
+        for (int i = 0; i < _enclosures.Length; i++)
+            Console.WriteLine($"Вольер {i + 1}: {_enclosures[i].AnimalsName}");
+    }
     
     private void FillEnclosure(int index, Animal animal)
     {
         Random random = new Random();
-        char[] sexes = new[] { 'M', 'F' };
+        char[] sexes = { Genders.Male, Genders.Female };
 
         Enclosure enclosure = _enclosures[index];
 
